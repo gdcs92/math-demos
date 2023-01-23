@@ -1,6 +1,8 @@
 import numpy as np
 import matplotlib.pyplot as plt
 
+from utils import fourier_coef, cos, sin
+
 
 class ClickHandler:
 
@@ -8,16 +10,20 @@ class ClickHandler:
     """default pixel distance tolerance"""
 
     def __init__(
-            self, fig, ax, mX, mY, D, stemgraph_lines,
+            self, fig, axs, N, cos_coefs, sin_coefs, X, Y, stemgraph_lines,
+            time_domain_line2d,
             epsilon=None
     ):
         self.fig = fig
-        self.ax = ax
+        self.axs = axs
         # coordenadas dos pontos que podem ser movidos
-        self.mX = mX
-        self.mY = mY
-        self.D = D # pontos x da curva (domínio)
+        self.N = N
+        self.cos_coefs = cos_coefs
+        self.sin_coefs = sin_coefs
+        self.X = X # pontos x da curva (domínio)
+        self.Y = Y # pontos y da curva (domínio)
         self.stemgraph_lines = stemgraph_lines
+        self.time_domain_line2d = time_domain_line2d
         self.epsilon = epsilon or self.default_epsilon # pixel distance tol
 
         self.pind = None # active point index
@@ -25,12 +31,13 @@ class ClickHandler:
 
     def _init_movable_pts_display_coords(self):
         # coloca coordenadas dos pontos no grafico em formato conveniente
-        xr = np.reshape(self.mX, (np.shape(self.mX)[0], 1))
-        yr = np.reshape(self.mY, (np.shape(self.mY)[0], 1))
+        xr = np.reshape(self.N, (np.shape(self.N)[0], 1))
+        yr = np.reshape(self.cos_coefs, (np.shape(self.cos_coefs)[0], 1))
         xy_vals = np.append(xr, yr, 1)
 
         # transforma coordenadas do grafico em coordenadas do display
-        self._xyt = self.ax.transData.transform(xy_vals)
+        ax = self.axs[1]
+        self._xyt = ax.transData.transform(xy_vals)
         # xt, yt = xyt[:, 0], xyt[:, 1]
 
     def on_button_press(self, event):
@@ -68,13 +75,33 @@ class ClickHandler:
 
     def _update_stemline(self):
         markerline = self.stemgraph_lines.markerline
-        markerline.set_ydata(self.mY)
+        markerline.set_ydata(self.cos_coefs)
 
         stemlines = self.stemgraph_lines.stemlines
         n = self.pind
         segments = stemlines.get_segments()
-        segments[n][1, 1] = self.mY[n]
+        segments[n][1, 1] = self.cos_coefs[n]
         stemlines.set_segments(segments)
+
+    def _update_graph(self):
+        num_coefs = len(self.N)
+        A = self.cos_coefs
+        B = self.sin_coefs
+        L = self.X[-1] - self.X[0]
+
+        def f(x):
+            return (
+                A[0]/2
+                + sum(
+                    A[n]*cos(x/L, n) + B[n]*sin(x/L, n)
+                    for n in range(1, num_coefs)
+                )
+            )
+
+        Y_coefs = f(self.X)
+
+        self.Y = Y_coefs
+        self.time_domain_line2d.set_ydata(self.Y)
 
     def on_motion_notify(self, event):
         'on mouse movement'
@@ -83,7 +110,8 @@ class ClickHandler:
             return
 
         # atualiza pontos movíveis
-        self.mY[self.pind] = event.ydata
+        self.cos_coefs[self.pind] = event.ydata
         self._update_stemline()
+        self._update_graph()
 
         self.fig.canvas.draw_idle()
