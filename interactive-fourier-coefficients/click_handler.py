@@ -51,8 +51,19 @@ class ClickHandler:
 
         self.pind = self._get_ind_under_point(event)
 
+    def _get_axis_index(self, event):
+        for i, ax in enumerate(self.axs):
+            if event.inaxes == ax:
+                return i
+        else:
+            return None
+
     def _get_ind_under_point(self, event):
         'get the index of the vertex under point if within epsilon tolerance'
+
+        axis_index = self._get_axis_index(event)
+        if axis_index != 1:
+            return None
 
         self._init_movable_pts_display_coords()
         xt = self._xyt[:, 0]
