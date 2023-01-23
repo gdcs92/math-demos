@@ -31,24 +31,13 @@ class ClickHandler:
 
         self.pind = None # active point index
 
-
-    def _init_movable_pts_display_coords(self):
-        # coloca coordenadas dos pontos no grafico em formato conveniente
-        xr = np.reshape(self.N, (np.shape(self.N)[0], 1))
-        yr = np.reshape(self.cos_coefs, (np.shape(self.cos_coefs)[0], 1))
-        xy_vals = np.append(xr, yr, 1)
-
-        # transforma coordenadas do grafico em coordenadas do display
-        ax = self.axs[1]
-        self._xyt = ax.transData.transform(xy_vals)
-        # xt, yt = xyt[:, 0], xyt[:, 1]
-
     def on_button_press(self, event):
         'whenever a mouse button is pressed'
 
         if event.inaxes is None or event.button != 1:
             return
 
+        self.event_axis_index = self._get_axis_index(event)
         self.pind = self._get_ind_under_point(event)
 
     def _get_axis_index(self, event):
@@ -61,11 +50,26 @@ class ClickHandler:
     def _get_ind_under_point(self, event):
         'get the index of the vertex under point if within epsilon tolerance'
 
-        axis_index = self._get_axis_index(event)
-        if axis_index != 1:
+        axis_index = self.event_axis_index
+        if axis_index == 1:
+            graph_Y = self.cos_coefs
+        elif axis_index == 2:
+            graph_Y = self.sin_coefs
+        else:
             return None
 
-        self._init_movable_pts_display_coords()
+        graph_X = self.N
+
+        # coloca coordenadas dos pontos no grafico em formato conveniente
+        xr = np.reshape(graph_X, (np.shape(graph_X)[0], 1))
+        yr = np.reshape(graph_Y, (np.shape(graph_Y)[0], 1))
+        xy_vals = np.append(xr, yr, 1)
+
+        # transforma coordenadas do grafico em coordenadas do display
+        ax = self.axs[axis_index]
+        self._xyt = ax.transData.transform(xy_vals)
+        # xt, yt = xyt[:, 0], xyt[:, 1]
+
         xt = self._xyt[:, 0]
         yt = self._xyt[:, 1]
 
@@ -88,13 +92,24 @@ class ClickHandler:
         self.pind = None
 
     def _update_stemline(self):
-        markerline = self.cos_stemgraph_lines.markerline
-        markerline.set_ydata(self.cos_coefs)
 
-        stemlines = self.cos_stemgraph_lines.stemlines
+        if self.event_axis_index == 1:
+            markerline = self.cos_stemgraph_lines.markerline
+            stemlines = self.cos_stemgraph_lines.stemlines
+            coefs = self.cos_coefs
+
+        elif self.event_axis_index == 2:
+            markerline = self.sin_stemgraph_lines.markerline
+            stemlines = self.sin_stemgraph_lines.stemlines
+            coefs = self.sin_coefs
+
+        else:
+            return None
+
+        markerline.set_ydata(coefs)
         n = self.pind
         segments = stemlines.get_segments()
-        segments[n][1, 1] = self.cos_coefs[n]
+        segments[n][1, 1] = coefs[n]
         stemlines.set_segments(segments)
 
     def _update_graph(self):
@@ -117,14 +132,21 @@ class ClickHandler:
         self.Y = Y_coefs
         self.time_domain_line2d.set_ydata(self.Y)
 
+    def _update_data_points(self, event):
+
+        if self.event_axis_index == 1:
+            self.cos_coefs[self.pind] = event.ydata
+
+        elif self.event_axis_index == 2:
+            self.sin_coefs[self.pind] = event.ydata
+
     def on_motion_notify(self, event):
         'on mouse movement'
 
         if self.pind is None or event.inaxes is None or event.button != 1:
             return
 
-        # atualiza pontos movíveis
-        self.cos_coefs[self.pind] = event.ydata
+        self._update_data_points(event)
         self._update_stemline()
         self._update_graph()
 
