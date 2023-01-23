@@ -10,8 +10,10 @@ class ClickHandler:
     """default pixel distance tolerance"""
 
     def __init__(
-            self, fig, axs, N, cos_coefs, sin_coefs, X, Y, stemgraph_lines,
+            self, fig, axs, N, cos_coefs, sin_coefs, X, Y,
             time_domain_line2d,
+            cos_stemgraph_lines,
+            sin_stemgraph_lines,
             epsilon=None
     ):
         self.fig = fig
@@ -22,7 +24,8 @@ class ClickHandler:
         self.sin_coefs = sin_coefs
         self.X = X # pontos x da curva (domínio)
         self.Y = Y # pontos y da curva (domínio)
-        self.stemgraph_lines = stemgraph_lines
+        self.cos_stemgraph_lines = cos_stemgraph_lines
+        self.sin_stemgraph_lines = sin_stemgraph_lines
         self.time_domain_line2d = time_domain_line2d
         self.epsilon = epsilon or self.default_epsilon # pixel distance tol
 
@@ -74,10 +77,10 @@ class ClickHandler:
         self.pind = None
 
     def _update_stemline(self):
-        markerline = self.stemgraph_lines.markerline
+        markerline = self.cos_stemgraph_lines.markerline
         markerline.set_ydata(self.cos_coefs)
 
-        stemlines = self.stemgraph_lines.stemlines
+        stemlines = self.cos_stemgraph_lines.stemlines
         n = self.pind
         segments = stemlines.get_segments()
         segments[n][1, 1] = self.cos_coefs[n]

@@ -13,7 +13,7 @@ if __name__ == '__main__':
     num_coefficients = 30
     f = sinusoidal
 
-    fig, axs = plt.subplots(2, 1, figsize=(12, 6))
+    fig, axs = plt.subplots(3, 1, figsize=(12, 8))
 
     X = np.linspace(-1, 1, 500)
     Y = f(X)
@@ -29,15 +29,24 @@ if __name__ == '__main__':
     ax.grid()
 
     ax = axs[1]
-    stemgraph_lines = ax.stem(N, cos_coefs, 'o', basefmt='C0')
+    cos_stemgraph_lines = ax.stem(N, cos_coefs, 'o', basefmt='C0')
     ax.set_ylabel('$a_n$')
     ax.set_xticks(N)
     ax.set_xlim(left=-0.5)
     ax.grid()
 
+    ax = axs[2]
+    sin_stemgraph_lines = ax.stem(N, sin_coefs, 'o', basefmt='C0')
+    ax.set_ylabel('$b_n$')
+    ax.set_xticks(N)
+    ax.set_xlim(left=-0.5)
+    ax.grid()
+
     click = ClickHandler(
-        fig, axs, N, cos_coefs, sin_coefs, X, Y, stemgraph_lines,
-        time_domain_line2d
+        fig, axs, N, cos_coefs, sin_coefs, X, Y,
+        time_domain_line2d,
+        cos_stemgraph_lines,
+        sin_stemgraph_lines
     )
 
     fig.canvas.mpl_connect('button_press_event', click.on_button_press)
