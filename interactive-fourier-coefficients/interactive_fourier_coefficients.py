@@ -26,20 +26,23 @@ if __name__ == '__main__':
     ax = axs[0]
     time_domain_line2d, = ax.plot(X, f(X), '-')
     ax.set_ylabel('$f(x)$')
+    ax.set_ylim(bottom=-4, top=4)
     ax.grid()
 
     ax = axs[1]
-    cos_stemgraph_lines = ax.stem(N, cos_coefs, 'o', basefmt='C0')
+    cos_stemgraph_lines = ax.stem(N, cos_coefs, markerfmt='o', basefmt='C0')
     ax.set_ylabel('$a_n$')
     ax.set_xticks(N)
     ax.set_xlim(left=-0.5)
+    ax.set_ylim(bottom=-1.1, top=1.1)
     ax.grid()
 
     ax = axs[2]
-    sin_stemgraph_lines = ax.stem(N, sin_coefs, 'o', basefmt='C0')
+    sin_stemgraph_lines = ax.stem(N, sin_coefs, markerfmt='o', basefmt='C0')
     ax.set_ylabel('$b_n$')
     ax.set_xticks(N)
     ax.set_xlim(left=-0.5)
+    ax.set_ylim(bottom=-1.1, top=1.1)
     ax.grid()
 
     click = ClickHandler(

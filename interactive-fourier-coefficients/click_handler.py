@@ -22,12 +22,12 @@ class ClickHandler:
         self.N = N
         self.cos_coefs = cos_coefs
         self.sin_coefs = sin_coefs
-        self.X = X # pontos x da curva (domínio)
-        self.Y = Y # pontos y da curva (domínio)
+        self.X = np.asarray(X)  # pontos x da curva (domínio)
+        self.Y = np.asarray(Y)  # pontos y da curva (domínio)
         self.cos_stemgraph_lines = cos_stemgraph_lines
         self.sin_stemgraph_lines = sin_stemgraph_lines
         self.time_domain_line2d = time_domain_line2d
-        self.epsilon = epsilon or self.default_epsilon # pixel distance tol
+        self.epsilon = epsilon or self.default_epsilon  # pixel distance tol
 
         self.pind = None # active point index
 
@@ -132,6 +132,20 @@ class ClickHandler:
         self.Y = Y_coefs
         self.time_domain_line2d.set_ydata(self.Y)
 
+    def _update_axis_limits(self):
+        ax = self.axs[0]
+        ax_ymin, ax_ymax = ax.get_ylim()
+        Y_min = self.Y.min()
+        Y_max = self.Y.max()
+
+        if Y_min < ax_ymin:
+            new_ymin = 1.2 * Y_min
+            ax.set_ylim(bottom=new_ymin)
+
+        if Y_max > ax_ymax:
+            new_ymax = 1.2 * Y_max
+            ax.set_ylim(top=new_ymax)
+
     def _update_data_points(self, event):
 
         if self.event_axis_index == 1:
@@ -149,5 +163,6 @@ class ClickHandler:
         self._update_data_points(event)
         self._update_stemline()
         self._update_graph()
+        self._update_axis_limits()
 
         self.fig.canvas.draw_idle()
